@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mis Gastos</title>
+<meta name="theme-color" content="#0f766e">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+  :root { --bg:#0f766e; --txt:#ffffff; --card:#ffffff; --ink:#0f766e; }
+  * { box-sizing:border-box; }
+  html, body { margin:0; height:100%; background:var(--bg); color:var(--txt);
+    font:16px/1.4 -apple-system, system-ui, "Segoe UI", Roboto, sans-serif; }
+  main { min-height:100dvh; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:18px; padding:24px 16px; text-align:center; }
+  img { width:112px; height:112px; border-radius:24px; box-shadow:0 8px 24px rgba(0,0,0,.25); }
+  h1 { margin:0; font-size:24px; }
+  p { margin:0; max-width:320px; opacity:.9; }
+  .btn { display:inline-block; border:0; border-radius:24px; padding:13px 24px; font-size:16px; font-weight:600;
+    background:var(--card); color:var(--ink); text-decoration:none; cursor:pointer; }
+  .sec { background:transparent; color:var(--txt); border:1px solid rgba(255,255,255,.6); }
+  [hidden] { display:none !important; }
+</style>
+</head>
+<body>
+<main>
+  <img src="icon-512.png" alt="">
+  <h1>Mis Gastos</h1>
+  <p id="msg">Abriendo…</p>
+  <button id="instalar" class="btn" hidden>Instalar app</button>
+  <a id="abrir" class="btn sec" href="https://script.google.com/macros/s/AKfycbzElwtYhaAdOGO_J4iyIaFBI6TNs3dAmZh846WJzZPZXJKumt5CsXjLvmT4Lek4QyZ2/exec">Abrir Mis Gastos</a>
+</main>
+<script>
+  const APP = 'https://script.google.com/macros/s/AKfycbzElwtYhaAdOGO_J4iyIaFBI6TNs3dAmZh846WJzZPZXJKumt5CsXjLvmT4Lek4QyZ2/exec';
+  const msg = document.getElementById('msg');
+  const btnInstalar = document.getElementById('instalar');
+  const instalada = matchMedia('(display-mode: standalone)').matches || new URLSearchParams(location.search).has('app');
+
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () {});
+
+  if (instalada) {
+    // Abierta desde el ícono: vamos directo a la app
+    location.replace(APP);
+  } else {
+    msg.textContent = 'Instalala para tenerla en el menú de aplicaciones.';
+    let evento = null;
+    addEventListener('beforeinstallprompt', function (e) {
+      e.preventDefault();
+      evento = e;
+      btnInstalar.hidden = false;
+    });
+    btnInstalar.addEventListener('click', function () {
+      if (!evento) return;
+      evento.prompt();
+      evento.userChoice.then(function () { btnInstalar.hidden = true; msg.textContent = 'Listo. Buscala en el menú de aplicaciones.'; });
+    });
+    addEventListener('appinstalled', function () { msg.textContent = 'Instalada. Buscala en el menú de aplicaciones.'; });
+    setTimeout(function () {
+      if (!evento) msg.textContent = 'Para instalarla: menú ⋮ de Chrome → "Instalar app" o "Agregar a pantalla principal".';
+    }, 2500);
+  }
+</script>
+</body>
+</html>
